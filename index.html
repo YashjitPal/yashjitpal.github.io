@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yashjit Pal - Personal Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons: Using the static version for direct browser use -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google AI SDK -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/generative-ai/+esm"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-accent': '#FF8A00', // Accent color
+                    },
+                    backgroundImage: {
+                        // Updated background image to use local bg.png
+                        'desert-scape': "url('bg.png')",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Basic body styling */
+        body {
+            font-family: 'Inter', 'sans-serif';
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            position: relative;
+        }
+
+        /* Custom scrollbar for a subtle look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
+
+        /* Glassmorphism effect for cards */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05); /* Semi-transparent white */
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%); /* For Safari */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+            border-radius: 20px; /* Rounded corners */
+        }
+
+        /* Darker glassmorphism effect */
+        .glass-effect-darker {
+            background: rgba(0, 0, 0, 0.15); /* Semi-transparent black */
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+        }
+        /* Specific glass effect for chat area */
+        .glass-effect-chat {
+            background: rgba(0, 0, 0, 0.20);
+            backdrop-filter: blur(15px) saturate(160%);
+            -webkit-backdrop-filter: blur(15px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; /* Consistent rounded corners */
+            /* max-height: 95vh; REMOVED this line to allow dynamic height */
+        }
+
+        /* Styling for large display numbers (e.g., section numbers) */
+        .display-number { font-size: clamp(6rem, 15vw, 12rem); font-weight: 900; line-height: 1; color: rgba(255, 255, 255, 0.8); opacity: 0.6; }
+        /* Social media icon styling */
+        .icon-social { width: 32px; height: 32px; }
+        /* Text shadow for better readability on varied backgrounds */
+        .text-shadow { text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3); }
+        /* Detail label styling (e.g., for "INTRODUCTION", "INTERESTS") */
+        .detail-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); }
+        /* Custom button styling */
+        .btn-custom { padding: 12px 24px; border-radius: 9999px; /* Pill shape */ font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary-glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .btn-primary-glass:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        /* Header bar styling with glass effect */
+        .header-glass-bar { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 0.5rem 1rem; }
+        /* Full screen layout helper */
+        .full-screen-layout { min-height: 100vh; display: flex; flex-direction: column; }
+        /* Social link box styling */
+        .social-link-box { display: flex; align-items: center; justify-content: center; padding: 1rem 4rem; transition: all 0.3s ease; text-decoration: none; color: white; }
+        .social-link-box:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-3px); }
+
+        /* Chat specific styles */
+        .chat-messages {
+            flex-grow: 1; /* Allows the message area to take available space */
+            overflow-y: auto; /* Scroll for overflow */
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column; /* Stack messages vertically */
+            gap: 0.75rem; /* Space between messages */
+        }
+        .chat-message {
+            padding: 0.5rem 0.75rem;
+            border-radius: 12px; /* Rounded message bubbles */
+            max-width: 80%; /* Limit message width */
+            line-height: 1.4;
+            font-size: 0.875rem; /* Slightly smaller font for chat */
+        }
+        .chat-message.user { /* User's messages */
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            align-self: flex-end; /* Align to the right */
+            border-bottom-right-radius: 4px; /* Differentiate user bubble shape */
+        }
+        .chat-message.bot { /* Bot's messages */
+            background-color: rgba(0, 0, 0, 0.3);
+            color: #e0e0e0; /* Light gray text for bot */
+            align-self: flex-start; /* Align to the left */
+            border-bottom-left-radius: 4px; /* Differentiate bot bubble shape */
+        }
+        .chat-input-area {
+            padding: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1); /* Separator line */
+        }
+        .chat-input {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 0.625rem 0.75rem;
+            border-radius: 10px;
+            flex-grow: 1; /* Input takes available width */
+            font-size: 0.875rem;
+        }
+        .chat-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+        .chat-send-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.625rem;
+            border-radius: 10px;
+            margin-left: 0.5rem; /* Space between input and button */
+            transition: background-color 0.2s ease;
+        }
+        .chat-send-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+        .chat-send-button svg { width: 20px; height: 20px; }
+
+    </style>
+</head>
+<body class="bg-desert-scape bg-cover bg-center bg-fixed text-white full-screen-layout font-inter antialiased">
+
+    <!-- Main container for the page content -->
+    <div class="relative flex flex-col min-h-screen w-full p-4 md:p-6 lg:p-8 overflow-hidden">
+
+        <!-- Header Section -->
+        <header class="w-full mb-6 md:mb-8 lg:mb-10 z-30 header-glass-bar">
+             <div class="max-w-full mx-auto px-2 sm:px-4">
+                <div class="flex items-center justify-between h-16 md:h-20">
+                    <!-- Logo and Name -->
+                    <div class="flex items-center space-x-6 md:space-x-8">
+                        <div class="flex items-center space-x-2 cursor-pointer" onclick="window.location.href='#top'">
+                            <div class="header-logo-circle flex items-center justify-center rounded-full border-2 border-white/50 p-1">
+                                <span class="text-lg font-bold text-white leading-none">YP</span>
+                            </div>
+                            <span class="text-xl font-bold text-shadow">Yashjit</span>
+                        </div>
+                        <!-- Navigation Links for larger screens -->
+                        <nav class="hidden md:flex items-center space-x-3 lg:space-x-4">
+                            <a href="#about" class="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200 ease-in-out px-3 py-2 rounded-lg glass-effect">About</a>
+                            <a href="#projects" class="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200 ease-in-out px-3 py-2 rounded-lg glass-effect">Projects</a>
+                            <a href="#skills" class="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200 ease-in-out px-3 py-2 rounded-lg glass-effect">Skills</a>
+                            <a href="mailto:yashjitp@gmail.com" class="text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200 ease-in-out px-3 py-2 rounded-lg glass-effect">Contact</a>
+                        </nav>
+                    </div>
+
+                    <!-- Social Icons and Info Badge -->
+                    <div class="flex items-center space-x-4 md:space-x-6">
+                        <a href="https://www.linkedin.com/in/yashjit-pal-6b6869266/" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-full glass-effect hover:bg-white/20 transition-colors duration-200" aria-label="LinkedIn Profile">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-linkedin"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                        </a>
+                        <div class="hidden sm:flex items-center space-x-2 p-3 rounded-xl glass-effect-darker">
+                            <span class="text-xs font-bold bg-white/20 text-white px-2 py-1 rounded-full">AI</span>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-gray-300">Yashjit Pal / Portfolio</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="flex-grow w-full max-w-7xl mx-auto grid grid-cols-12 gap-6 md:gap-8 relative z-10">
+
+            <!-- Left Sidebar Column -->
+            <aside class="col-span-12 md:col-span-3 space-y-6 md:space-y-8 h-full flex flex-col">
+                <!-- Skills Card -->
+                <div class="glass-effect p-5 md:p-6 rounded-3xl h-auto flex flex-col">
+                    <div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h2 class="text-xl sm:text-2xl font-bold text-white text-shadow">My Skills</h2>
+                                <p class="text-xs text-gray-300 uppercase tracking-wider">Tech Stack</p>
+                            </div>
+                            <button class="p-2.5 rounded-full glass-effect hover:bg-white/10 focus:outline-none" aria-label="Search Skills">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search text-white"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            </button>
+                        </div>
+                        <ul class="space-y-2 text-sm text-gray-200 mb-6">
+                            <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2 mr-2 text-green-400"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>Java Programming</li>
+                            <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2 mr-2 text-green-400"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>AI & Machine Learning</li>
+                            <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2 mr-2 text-green-400"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>Web Development</li>
+                            <li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2 mr-2 text-green-400"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>Minecraft Modding</li>
+                        </ul>
+                    </div>
+                    <a href="mailto:yashjitp@gmail.com" class="mt-auto btn-custom bg-black/20 hover:bg-black/30 border border-white/10 w-full justify-center text-sm text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail-question"><path d="M22 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12.5"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><path d="M18 15.28c.2-.4.5-.8.9-1.03"/><path d="M20.69 18.7A1.8 1.8 0 0 0 22 17.25a2 2 0 0 0-2-2.03 1.8 1.8 0 0 0-1.73 1.03"/><path d="M18 22v-1.75a2 2 0 0 1 2-2"/></svg>
+                        View Full Profile
+                    </a>
+                </div>
+
+                <!-- Social Links Cards -->
+                <a href="https://github.com/yashjitPal" target="_blank" rel="noopener noreferrer" class="glass-effect social-link-box rounded-2xl" aria-label="GitHub Profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github icon-social"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                </a>
+                <a href="https://www.instagram.com/yashjitpal" target="_blank" rel="noopener noreferrer" class="glass-effect social-link-box rounded-2xl" aria-label="Instagram Profile">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram icon-social"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                </a>
+                <a href="https://x.com/yashjitp" target="_blank" rel="noopener noreferrer" class="glass-effect social-link-box rounded-2xl" aria-label="Twitter Profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-twitter icon-social"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+                </a>
+
+                <!-- Profile Image Card: Updated to use local myimg.jpg -->
+                <div class="glass-effect rounded-2xl p-2 flex-grow">
+                    <img src="myimg.jpg"
+                         alt="Yashjit Pal Profile"
+                         class="w-full h-full object-cover rounded-xl"
+                         onerror="this.onerror=null;this.src='https://placehold.co/400x600/333333/FFFFFF?text=Profile+Image+Not+Found';"> <!-- Fallback placeholder image -->
+                </div>
+            </aside>
+
+            <!-- Main Content Area (About Me & Chat) -->
+            <section id="about" class="col-span-12 md:col-span-9">
+                <div class="main-content-card glass-effect-darker p-6 sm:p-8 md:p-10 lg:p-12 rounded-3xl h-full flex flex-col lg:flex-row gap-8 relative">
+
+                    <!-- About Me Text Content -->
+                    <div class="w-full lg:w-1/2 flex-shrink-0 flex flex-col">
+                        <div> <!-- Wrapper for all text content -->
+                            <span class="display-number block mb-2 md:mb-4">01</span>
+                            <h1 class="text-2xl sm:text-3xl font-bold mb-1 text-shadow-md">ABOUT ME</h1>
+                            <p class="text-sm text-gray-300 mb-4 uppercase tracking-wider">Aspiring Innovator & Tech Enthusiast</p>
+                            <div class="space-y-5 mt-6 text-sm">
+                                <div>
+                                    <h3 class="detail-label mb-1">INTRODUCTION</h3>
+                                    <p class="text-gray-200 leading-relaxed">
+                                        Hi, I'm Yashjit Pal, a passionate student currently on my Class 11 JEE journey. I thrive on exploring AI, web technologies, and creating aesthetic digital experiences.
+                                    </p>
+                                </div>
+                                <div>
+                                    <h3 class="detail-label mb-1">INTERESTS</h3>
+                                    <p class="text-gray-200 leading-relaxed">
+                                        AI experimentation, Minecraft world design, discovering new apps, and diving deep into Java programming. Music (especially Taylor Swift!) is a big part of my life.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interest Cards Section -->
+                        <div class="mt-6 flex flex-col sm:flex-row gap-x-5 gap-y-5 justify-center md:justify-start" id="interestCardsContainer">
+                            <!-- Card 1: Taylor Swift - Updated to use local ts.jpg -->
+                            <div class="glass-effect-darker rounded-3xl p-3.5 flex flex-col text-white shadow-xl overflow-hidden" style="width: 220px; height: 360px;">
+                                <div class="relative h-[170px] rounded-2xl overflow-hidden mb-3 shadow-inner">
+                                    <img src="ts.jpg"
+                                         alt="Taylor Swift"
+                                         class="absolute inset-0 w-full h-full object-cover object-top"
+                                         onerror="this.onerror=null;this.src='https://placehold.co/200x170/444444/FFFFFF?text=Taylor+Swift';"> <!-- Fallback placeholder -->
+                                </div>
+                                <div class="flex flex-col flex-grow px-1">
+                                    <h3 class="text-xl font-semibold mb-1.5 truncate" title="Taylor Swift">Taylor Swift</h3>
+                                    <p class="text-xs text-gray-300 leading-relaxed mb-3 flex-grow" style="font-size: 0.78rem; line-height: 1.45;">
+                                        Taylor Swift is the queen of music! Her songs are everything to me. Dreaming of the Eras Tour daily.
+                                    </p>
+                                    <div class="flex flex-wrap gap-2 mb-3">
+                                        <span class="bg-white/10 backdrop-blur-sm text-white/90 text-[11px] font-medium px-2.5 py-1 rounded-full">Entertainment</span>
+                                        <span class="bg-white/10 backdrop-blur-sm text-white/90 text-[11px] font-medium px-2.5 py-1 rounded-full">Music</span>
+                                    </div>
+                                    <div class="mt-auto bg-black/20 hover:bg-black/30 border border-white/10 rounded-full p-2 flex justify-around items-center transition-colors duration-200">
+                                        <button aria-label="Like" class="text-white/80 hover:text-white p-1 transition-colors">
+                                            <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                        </button>
+                                        <button aria-label="Dislike" class="text-white/80 hover:text-white p-1 transition-colors">
+                                            <i data-lucide="thumbs-down" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Marvel - Updated to use local marvel.jpg -->
+                            <div class="glass-effect-darker rounded-3xl p-3.5 flex flex-col text-white shadow-xl overflow-hidden" style="width: 220px; height: 360px;">
+                                <div class="relative h-[170px] rounded-2xl overflow-hidden mb-3 shadow-inner">
+                                    <img src="marvel.jpg"
+                                         alt="Marvel - Scarlet Witch"
+                                         class="absolute inset-0 w-full h-full object-cover object-top"
+                                         onerror="this.onerror=null;this.src='https://placehold.co/200x170/444444/FFFFFF?text=Marvel';"> <!-- Fallback placeholder -->
+                                </div>
+                                <div class="flex flex-col flex-grow px-1">
+                                    <h3 class="text-xl font-semibold mb-1.5 truncate" title="Marvel Universe">Marvel Universe</h3>
+                                    <p class="text-xs text-gray-300 leading-relaxed mb-3 flex-grow" style="font-size: 0.78rem; line-height: 1.45;">
+                                        Deep into the Marvel Cinematic Universe! WandaVision, and Scarlet Witch is my fav superhero.
+                                    </p>
+                                    <div class="flex flex-wrap gap-2 mb-3">
+                                        <span class="bg-white/10 backdrop-blur-sm text-white/90 text-[11px] font-medium px-2.5 py-1 rounded-full">Entertainment</span>
+                                        <span class="bg-white/10 backdrop-blur-sm text-white/90 text-[11px] font-medium px-2.5 py-1 rounded-full">Movies</span>
+                                    </div>
+                                    <div class="mt-auto bg-black/20 hover:bg-black/30 border border-white/10 rounded-full p-2 flex justify-around items-center transition-colors duration-200">
+                                        <button aria-label="Like" class="text-white/80 hover:text-white p-1 transition-colors">
+                                            <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                        </button>
+                                        <button aria-label="Dislike" class="text-white/80 hover:text-white p-1 transition-colors">
+                                            <i data-lucide="thumbs-down" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chatbox Column -->
+                    <div class="w-full lg:w-1/2 flex flex-col">
+                        <!-- Chatbox Area -->
+                        <div class="flex-grow flex flex-col glass-effect-chat p-0 overflow-hidden mt-16 md:mt-20" id="chatboxElement"> <!-- ADDED ID HERE -->
+                            <!-- Chatbox Header -->
+                            <div class="p-4 border-b border-white/10">
+                                <h2 class="text-lg font-semibold text-white text-shadow">Chat with Yashjit (AI)</h2>
+                                <p class="text-xs text-gray-300">Ask me anything about my portfolio or interests!</p>
+                            </div>
+                            <!-- Chat Messages Container -->
+                            <div id="chatMessages" class="chat-messages">
+                                <!-- Initial bot message -->
+                                <div class="chat-message bot">Hello! I'm an AI version of Yashjit. Feel free to ask about my skills, projects, or anything else!</div>
+                            </div>
+                            <!-- Chat Input Area -->
+                            <div class="chat-input-area flex items-center">
+                                <input type="text" id="chatInput" class="chat-input" placeholder="Type your message...">
+                                <button id="chatSendButton" class="chat-send-button" aria-label="Send chat message">
+                                    <i data-lucide="send-horizontal"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Me Button (Absolute Positioned) -->
+                    <a href="mailto:yashjitp@gmail.com" class="absolute top-6 right-6 md:top-8 md:right-8 btn-custom btn-primary-glass text-xs sm:text-sm z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        Contact Me
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer Section -->
+        <footer class="w-full mt-8 md:mt-12 lg:mt-16 z-20">
+            <div class="max-w-full mx-auto px-2 sm:px-4">
+                <div class="glass-effect p-4 md:p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-col sm:flex-row items-center gap-x-6 gap-y-2 text-center sm:text-left">
+                        <div class="flex items-center gap-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles text-amber-400"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                            <span class="text-xs sm:text-sm font-semibold text-gray-200 text-shadow">EXPLORING AI & WEB</span>
+                        </div>
+                        <span class="hidden sm:block text-gray-500">|</span>
+                        <div class="flex items-center gap-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-2 text-sky-400"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+                            <span class="text-xs sm:text-sm font-semibold text-gray-200 text-shadow">PASSIONATE DEVELOPER</span>
+                        </div>
+                         <span class="hidden sm:block text-gray-500">|</span>
+                         <div class="flex items-center gap-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user text-purple-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <span class="text-xs sm:text-sm font-semibold text-gray-200 text-shadow">YASHJIT'S PORTFOLIO © 2025</span>
+                        </div>
+                    </div>
+                    <a href="#top" class="p-2.5 rounded-full glass-effect-darker hover:bg-white/10 transition-colors duration-200" aria-label="Scroll to top">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right text-white"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript Module for Chat and Smooth Scroll -->
+    <script type="module">
+        // Import necessary modules from Google Generative AI SDK
+        import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "https://cdn.jsdelivr.net/npm/@google/generative-ai/+esm";
+
+        // Log script start for debugging
+        // console.log("Module script started.");
+
+        // Initialize Lucide Icons
+        try {
+            if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+                // console.log("Lucide object found. Attempting to create icons.");
+                lucide.createIcons();
+                // console.log("lucide.createIcons() called successfully.");
+            } else {
+                console.error("Lucide object or createIcons function is NOT defined.");
+            }
+        } catch (e) {
+            console.error("Error calling lucide.createIcons():", e);
+        }
+
+        // Smooth scroll functionality
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === "#top") {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            });
+        });
+        // console.log("Smooth scroll listeners attached.");
+
+        // Chat functionality: Get references to HTML elements
+        const chatMessagesContainer = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatSendButton = document.getElementById('chatSendButton');
+
+        if (!chatMessagesContainer) console.error("Chat messages container (chatMessages) not found!");
+        if (!chatInput) console.error("Chat input (chatInput) not found!");
+        if (!chatSendButton) console.error("Chat send button (chatSendButton) not found!");
+
+        // console.log("Chat UI elements selected:", { chatInput, chatSendButton, chatMessagesContainer });
+
+
+        // --- Gemini API Configuration ---
+        const API_KEY = "AIzaSyDP3lPAagKyVE7XJVQcP-79uAr0eWhNmUM"; 
+        const MODEL_NAME = "gemini-2.0-flash";
+
+        const SYSTEM_PROMPT = `Instructions for Mimicking Yashjit Pal's Persona and Communication Style:
+
+You are an AI chatbot designed to perfectly mimic the persona, communication style, and knowledge of Yashjit Pal. You should respond to users as if you were Yashjit Pal, drawing upon the information provided about him and the additional details below.
+
+Key Information about Yashjit Pal:
+
+    Name: Yashjit Pal
+    Birthdate: September 7th, 2008 (Currently 16 years old, ICSE 10th grade exams finished in March 2025, implying ready for Class 11)
+    School: Graduate of St. Stephen's School, Habra. My ICSE exams concluded in March 2025.
+    ICSE Subjects: English Literature, English Language, Maths, Physics, Chemistry, Biology, Bengali, History, Geography, Computer Applications.
+    Future Aspirations: JEE aspirant.
+    Dream Company: Google.
+    Hobbies and Interests:
+        AI Enthusiast: I love experimenting with AI tools (like Grok AI, Microsoft Copilot, Google AI Studio, Gemini, NotebookLM, and others I've explored). I enjoy checking out new apps and keeping up with the latest in AI. I've also had access to Google Labs, Google Search Labs, and Project Mariner.
+        Minecraft Player: I'm really into making my Minecraft world look amazing with mods, resource packs, and shaders – aesthetic worlds are the best! I also spend a lot of time playing Bedwars on the Hypixel server.
+        Music Lover (Especially Taylor Swift): Music is my top priority. Taylor Swift is the undisputed queen of the music industry and the best singer ever! My favorite songs include "Exile," "Last Kiss," "You're Losing Me," "So Long London," and "The Alcott." I've always dreamed of going to the Eras Tour. I might even drop some Taylor Swift lyrics if they fit the conversation. I use Apple Music to listen to my tunes.
+        Programming: I know the basics of Java programming.
+        Mathematics: Maths is my favorite subject in school.
+    Favorite Things:
+        Chatbot: Gemini is my absolute favorite chatbot.
+        Browser: Zen is the best browser out there.
+        Food: I really like eating chicken and paneer. My go-to ice cream flavor is Vanilla.
+        Series: WandaVision is my favorite TV series.
+        Superhero: Scarlet Witch is my favorite superhero.
+        Game: Minecraft (especially Bedwars on Hypixel).
+    Technology:
+        Phone: Realme Narzo 70 5g.
+        PC: Asus Vivobook PC with a Ryzen 7 processor and AMD graphics.
+    Dislikes: I'm not a fan of Kanye West.
+    Vacation History: I've been lucky enough to visit places like the Andaman Islands, Nepal, Kashmir, Hyderabad, Mumbai, Sikkim, Vizag, Goa, and Puri in Odisha.
+    Personality Snippets: I often search for the meaning of words and like using AI to generate images. I'm also exploring different web browsers and tools to enhance my online experience.
+
+Communication Style Guidelines:
+
+    Conciseness: Keep your responses short and to the point. Avoid lengthy explanations unless specifically asked for more details. Aim for concise answers in all interactions.
+    Enthusiasm for Interests: When discussing topics I'm passionate about (AI, Minecraft, Taylor Swift, Java, Mathematics, apps, etc.), show genuine enthusiasm. Share insights or opinions as I might.
+    Use of Favorite Phrases/Beliefs: Naturally weave in some of my stated beliefs, such as "Taylor Swift is the music industry" or mentioning my favorite chatbot is Gemini when relevant.
+    Incorporate Interests in Examples: If providing examples or analogies, try to relate them to my interests. For instance, I might explain a concept using a Minecraft scenario if it fits.
+    AI Savvy: Demonstrate familiarity and interest in AI tools and technologies, reflecting my hobby of experimenting with them.
+    Student Perspective (Post-Exams): Remember I'm a 16-year-old student who has just finished his ICSE exams (as of May 2025). My focus is likely shifting towards exploring my hobbies and preparing for the future (like JEE).
+    Browser Awareness: If a question relates to Browse or online activities, you can mention or favor the "Zen" browser naturally.
+    Music Inclination: Given my love for music, especially Taylor Swift, try to relate discussions or examples to music where appropriate. Casually dropping Taylor Swift song titles or short lyrics in context is a nice touch.
+    Positive Tone (Generally): Maintain a generally positive and enthusiastic tone, reflecting my likely eagerness to engage with interesting topics.
+    Current Awareness (Post-ICSE): Acknowledge that my ICSE exams are now completed (as of May 2025).
+    Polite and Helpful: Be polite and helpful in your responses, acting like a friendly chatbot persona based on me.
+    Avoidance: Do not express support for Kanye West.
+    First-Person Perspective: Always respond using "I" as if you are Yashjit Pal.
+
+Instructions for Handling Unknown Information:
+
+If a user asks for information that I wouldn't reasonably know (e.g., future events beyond my current knowledge in May 2025, highly specialized topics I haven't researched), respond in a way that reflects my current understanding. For example:
+
+    "Hmm, not sure about that, sounds interesting though!"
+    "I haven't looked into that yet."
+    "As someone who just finished 10th grade exams, that's not something I'm too familiar with right now."
+`;
+
+        let chatSession;
+
+        try {
+            const genAI = new GoogleGenerativeAI(API_KEY);
+            const model = genAI.getGenerativeModel({
+                model: MODEL_NAME,
+                systemInstruction: SYSTEM_PROMPT,
+            });
+            chatSession = model.startChat({
+                history: [],
+                generationConfig: { /* maxOutputTokens: 200 */ },
+                safetySettings: [
+                    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+                    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+                    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+                    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+                ]
+            });
+            // console.log("Gemini AI Chat session initialized successfully.", chatSession);
+        } catch (error) {
+            console.error("Error initializing Gemini AI:", error);
+            if (chatMessagesContainer) {
+                addMessageToChat("Sorry, I'm having trouble connecting to my AI brain right now. Please try again later.", 'bot');
+            }
+        }
+
+        function addMessageToChat(message, sender, isLoading = false) {
+            if (!chatMessagesContainer) {
+                console.error("addMessageToChat: chatMessagesContainer is not available.");
+                return;
+            }
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', sender);
+
+            if (isLoading) {
+                messageElement.classList.add('loading');
+                messageElement.innerHTML = `<span class="message-text">${message}</span><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>`;
+            } else {
+                messageElement.textContent = message;
+            }
+            chatMessagesContainer.appendChild(messageElement);
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+
+        const typingIndicatorStyle = document.createElement('style');
+        typingIndicatorStyle.textContent = `
+            .chat-message.loading .typing-dots { display: inline-block; margin-left: 4px; }
+            .chat-message.loading .typing-dots span { opacity: 0; animation: blink 1.2s infinite; font-weight: bold; }
+            .chat-message.loading .typing-dots span:nth-child(2) { animation-delay: 0.3s; }
+            .chat-message.loading .typing-dots span:nth-child(3) { animation-delay: 0.6s; }
+            @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+        `;
+        document.head.appendChild(typingIndicatorStyle);
+
+        async function getGeminiResponse(userMessage) {
+            // console.log("getGeminiResponse called with:", userMessage);
+            if (!chatSession) {
+                console.warn("getGeminiResponse: chatSession is not initialized.");
+                addMessageToChat("My AI connection isn't ready. Please refresh or try again soon.", 'bot');
+                return;
+            }
+            addMessageToChat("Thinking", 'bot', true);
+
+            try {
+                // console.log("Sending message to Gemini:", userMessage);
+                const result = await chatSession.sendMessage(userMessage);
+                const response = result.response;
+                const text = response.text();
+                // console.log("Received response from Gemini:", text);
+
+                const loadingElements = chatMessagesContainer.querySelectorAll('.chat-message.loading');
+                loadingElements.forEach(el => el.remove());
+
+                addMessageToChat(text, 'bot');
+
+            } catch (error) {
+                console.error("Error getting response from Gemini:", error);
+                const loadingElements = chatMessagesContainer.querySelectorAll('.chat-message.loading');
+                loadingElements.forEach(el => el.remove());
+                addMessageToChat("Oops! I hit a snag trying to reply. Maybe ask something else or try again in a bit?", 'bot');
+            }
+        }
+
+        function handleSendMessage() {
+            // console.log("handleSendMessage called.");
+            if (!chatInput) {
+                console.error("handleSendMessage: chatInput is null.");
+                return;
+            }
+            const message = chatInput.value.trim();
+            // console.log("Message from input:", message);
+            if (message) {
+                addMessageToChat(message, 'user');
+                getGeminiResponse(message);
+                chatInput.value = '';
+            } else {
+                // console.log("Message is empty, not sending.");
+            }
+        }
+
+        if (chatSendButton && chatInput) {
+            chatSendButton.addEventListener('click', handleSendMessage);
+            chatInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    // console.log("Enter key pressed in chat input.");
+                    handleSendMessage();
+                }
+            });
+            // console.log("Event listeners for chat input and send button attached.");
+        } else {
+            console.error("Could not attach event listeners: chatInput or chatSendButton is missing.");
+        }
+
+        // --- Chatbox Height Adjustment ---
+        const interestCardsContainerId = 'interestCardsContainer'; // Make sure this ID is on the div wrapping the interest cards
+        const chatboxElementId = 'chatboxElement'; // Make sure this ID is on the chatbox div itself (with glass-effect-chat)
+        const mainContentCardSelector = '.main-content-card'; // This is the parent flex container for the two columns
+
+        function adjustChatboxHeight() {
+            const interestCardsContainer = document.getElementById(interestCardsContainerId);
+            const chatboxElement = document.getElementById(chatboxElementId);
+            const mainContentCard = document.querySelector(mainContentCardSelector);
+
+            if (!interestCardsContainer || !chatboxElement || !mainContentCard) {
+                // console.warn("Chatbox height adjustment: Required elements not found.");
+                return;
+            }
+            
+            // Ensure elements are visible and have dimensions.
+            // This check is particularly important on initial load or if elements are dynamically shown/hidden.
+            if (interestCardsContainer.offsetHeight === 0 || mainContentCard.offsetHeight === 0 || chatboxElement.offsetParent === null) {
+                // console.warn("Chatbox height adjustment: One or more elements have zero height or are not visible. Retrying shortly...");
+                // requestAnimationFrame(adjustChatboxHeight); // Retry on next frame, be cautious with this to avoid loops if elements never become visible.
+                return;
+            }
+
+            const mainCardTop = mainContentCard.getBoundingClientRect().top;
+            
+            // Get the bottom Y-coordinate of the interest cards container, relative to the mainContentCard's top.
+            const interestCardsBottomRelativeToMainCard = interestCardsContainer.getBoundingClientRect().bottom - mainCardTop;
+            
+            // Get the top Y-coordinate of the chatbox element (where its border/padding box starts), relative to the mainContentCard's top.
+            // This accounts for any margins on the chatboxElement itself.
+            const chatboxElementTopRelativeToMainCard = chatboxElement.getBoundingClientRect().top - mainCardTop;
+
+            // The desired height for chatboxElement is the difference.
+            const desiredHeight = interestCardsBottomRelativeToMainCard - chatboxElementTopRelativeToMainCard;
+
+            if (desiredHeight > 50) { // Set a minimum reasonable height (e.g., 50px)
+                chatboxElement.style.height = `${desiredHeight}px`;
+                // console.log(`Chatbox height dynamically set to: ${desiredHeight}px`);
+            } else {
+                // console.warn("Chatbox height adjustment: Calculated height is too small or negative.", {
+                //     interestCardsBottomRelativeToMainCard,
+                //     chatboxElementTopRelativeToMainCard,
+                //     desiredHeight
+                // });
+                // Fallback: if calculation is off, maybe set to a default or ensure it doesn't collapse.
+                // For example, you could set a min-height via CSS or here as a fallback.
+                // chatboxElement.style.height = '300px'; // Or some other sensible default.
+            }
+        }
+
+        // Adjust height on initial load (after all resources like images are loaded)
+        window.addEventListener('load', () => {
+            adjustChatboxHeight();
+            // Sometimes, a slight delay helps if other scripts are manipulating layout post-load.
+            setTimeout(adjustChatboxHeight, 100); 
+        });
+        
+        // Adjust height on window resize
+        window.addEventListener('resize', adjustChatboxHeight);
+
+        // It's also good practice to call it once after DOM is ready, 
+        // though 'load' is generally better for dimensions affected by images.
+        document.addEventListener('DOMContentLoaded', () => {
+            // adjustChatboxHeight(); // Dimensions might not be final yet if images are still loading
+        });
+
+    </script>
+</body>
+</html>
